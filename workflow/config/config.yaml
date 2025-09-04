@@ -1,0 +1,35 @@
+# OCP-tool Snakemake workflow configuration
+
+# OpenIFS Configuration
+res_num: 159                    # Truncation number
+truncation_type: "linear"       # linear or cubic-octahedral  
+exp_name_oifs: "abda"          # 4-digit OpenIFS experiment name
+num_fields: 50                  # Number of fields in ICMGG file
+
+# Ocean Model Configuration  
+grid_name_oce: "CORE2"         # Name of ocean model grid
+cavity: false                   # Does mesh have ice cavities?
+interp_res: "r360x181"         # Regular grid for intermediate interpolation
+
+# File Paths
+fesom_grid_file_path: "/work/ab0246/a270092/input/fesom2/core2/mesh.nc"
+
+# Optional Runoff Modifications
+manual_basin_removal:
+  - "caspian-sea"
+  - "black-sea"
+
+# Optional Paleoclimate Configuration
+do_paleo: false
+paleo_input_path: "/work/ab0246/a270179/runtime/input/PRISM4/PRISM4D/"
+paleo_lsm_filename: "Plio_enh_LSM_v1.0.nc"
+paleo_ice_filename: "Plio_enh_icemask_v1.0.nc"
+paleo_vars:
+  lon_name: "lon"
+  lat_name: "lat" 
+  lsm_var_name: "p4_lsm"
+  ice_var_name: "P4_icemask"
+
+# Runtime Configuration
+threads: 4
+memory_mb: 8000

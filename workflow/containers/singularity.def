@@ -1,0 +1,75 @@
+Bootstrap: docker
+From: condaforge/mambaforge:latest
+
+%help
+    OCP-tool container for climate modeling and OpenIFS coupling preparation.
+    
+    Usage examples:
+        # Run Snakemake workflow
+        singularity exec ocp-tool.sif snakemake --cores 4
+        
+        # Interactive Jupyter session  
+        singularity exec --bind /data:/app/data ocp-tool.sif jupyter lab
+        
+        # Execute Python script
+        singularity exec ocp-tool.sif python ocp-tool.py
+
+%labels
+    Author OCP-tool developers
+    Description Climate modeling tools for OpenIFS coupling
+    Version 1.0
+
+%environment
+    export CONDA_ENV_NAME=ocp-tool
+    export PATH="/opt/conda/envs/${CONDA_ENV_NAME}/bin:${PATH}"
+    export PYTHONPATH="/app:${PYTHONPATH}"
+
+%files
+    workflow/envs/ocp_tool.yaml /tmp/environment.yaml
+    ocp_tool/ /app/ocp_tool/
+    workflow/ /app/workflow/
+    input/ /app/input/
+    *.py /app/
+    *.ipynb /app/
+    environment.yaml /app/
+    setup.py /app/
+    README.md /app/
+
+%post
+    # Update and install system dependencies
+    apt-get update && apt-get install -y \
+        libeccodes-dev \
+        libeccodes-tools \
+        libnetcdf-dev \
+        libhdf5-dev \
+        cdo \
+        nco \
+        git \
+        wget \
+        curl \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Create conda environment
+    mamba env create -f /tmp/environment.yaml -n ocp-tool
+    mamba clean -afy
+    conda clean -afy
+
+    # Set up application directory
+    cd /app
+    
+    # Install OCP-tool package
+    /opt/conda/envs/ocp-tool/bin/pip install -e .
+    
+    # Create output directories
+    mkdir -p output/{openifs_input_modified,oasis_mct3_input,runoff_map_modified,plots,executed_notebooks}
+    
+    # Make scripts executable
+    find workflow/scripts -name "*.py" -exec chmod +x {} \;
+
+%runscript
+    cd /app
+    exec /opt/conda/envs/ocp-tool/bin/"$@"
+
+%startscript
+    cd /app
+    exec /opt/conda/envs/ocp-tool/bin/snakemake --help
