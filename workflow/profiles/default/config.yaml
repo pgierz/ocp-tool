@@ -1,0 +1,17 @@
+# Snakemake profile configuration for local execution
+
+# Cluster/execution settings
+jobs: 4
+use-conda: true
+conda-frontend: mamba
+rerun-incomplete: true
+printshellcmds: true
+
+# Resource settings  
+default-resources:
+  - mem_mb=4000
+  - disk_mb=1000
+  - tmpdir="/tmp"
+
+# Logging
+log-level: info
