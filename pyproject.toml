@@ -79,7 +79,7 @@ channels = ["conda-forge", "bioconda", "eumetsat"]
 platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 
 [tool.pixi.dependencies]
-python = ">=3.8"
+python = ">=3.8,<3.10"
 numpy = "*"
 netcdf4 = "*"
 matplotlib = "*"
@@ -91,9 +91,11 @@ git = "*"
 pip = "*"
 tqdm = "*"
 snakemake-minimal = ">=7.0"
+setuptools = ">=65.0.0"
+wheel = ">=0.38.0"
 
 [tool.pixi.pypi-dependencies]
-# [FIXME] PG: This needs to go away soon, and should just be a regular dependency...
+# [FIXME] PG: This should eventually be moved to regular PyPI dependency once upstream publishes
 pyfesom2 = { git = "https://github.com/FESOM/pyfesom2.git", branch = "modernize-packaging" }
 
 [tool.pixi.feature.jupyter.dependencies]
