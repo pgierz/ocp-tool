@@ -1,5 +1,4 @@
 # OCP-tool Snakemake Workflow
-
 This directory contains a Snakemake workflow for automating the OpenIFS coupling preparation (OCP-tool) pipeline.
 
 ## Overview
