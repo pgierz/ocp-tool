@@ -5,7 +5,8 @@
       "Bash(gh:*)",
       "Bash(act:*)",
       "Bash(pixi install:*)",
-      "Bash(git for-each-ref:*)"
+      "Bash(git for-each-ref:*)",
+      "Bash(pixi run:*)"
     ],
     "deny": [],
     "ask": []

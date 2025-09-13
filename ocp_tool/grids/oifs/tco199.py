@@ -1,6 +1,5 @@
 from .utils import namedtuple_from_dict
 
-
 TCO199 = namedtuple_from_dict(
     "TCO199",
     {

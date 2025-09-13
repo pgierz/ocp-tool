@@ -1,6 +1,5 @@
-from .utils import namedtuple_from_dict
 from .tl255 import TL255
-
+from .utils import namedtuple_from_dict
 
 F128 = namedtuple_from_dict(
     "F128",
