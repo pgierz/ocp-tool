@@ -84,20 +84,18 @@ jobs:
         with:
           environments: dev
       
-      - name: Run flake8
+      - name: Run ruff
         run: |
-          # Stop the build if there are Python syntax errors or undefined names
-          pixi run -e dev flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.git,__pycache__,build,dist
-          # Exit-zero treats all errors as warnings
-          pixi run -e dev flake8 . --count --exit-zero --max-complexity=15 --max-line-length=120 --statistics --exclude=.git,__pycache__,build,dist
+          # Run ruff linter - it's much faster than flake8 and automatically excludes .pixi directories
+          pixi run -e dev ruff check ocp_tool workflow/scripts --output-format=github
       
       - name: Check code formatting with black
         run: |
-          pixi run -e dev black --check --diff --exclude=.git . || echo "::warning::Code formatting issues found. Run 'pixi run format' to fix."
+          pixi run -e dev black --check --diff ocp_tool workflow/scripts || echo "::warning::Code formatting issues found. Run 'pixi run format' to fix."
       
-      - name: Check import sorting with isort
+      - name: Check import sorting with ruff
         run: |
-          pixi run -e dev isort --check-only --diff . || echo "::warning::Import sorting issues found. Run 'pixi run sort-imports' to fix."
+          pixi run -e dev ruff check ocp_tool workflow/scripts --select I --diff || echo "::warning::Import sorting issues found. Run 'pixi run ruff-fix' to fix."
 
   notebook-tests:
     name: Test Jupyter Notebooks
