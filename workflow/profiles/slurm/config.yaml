@@ -1,0 +1,28 @@
+# Snakemake profile for SLURM cluster execution
+
+# Cluster settings
+cluster: "sbatch --parsable"
+cluster-status: "workflow/scripts/slurm_status.py"
+cluster-cancel: "scancel"
+jobs: 50
+use-conda: true
+conda-frontend: mamba
+
+# Resource defaults
+default-resources:
+  - mem_mb=8000
+  - disk_mb=2000
+  - tmpdir="$TMPDIR"
+  - partition="compute"
+  - time="04:00:00"
+
+# Job submission template  
+cluster-config: "workflow/profiles/slurm/cluster.yaml"
+
+# Logging
+log-level: info
+printshellcmds: true
+
+# Restart settings
+rerun-incomplete: true
+keep-going: true

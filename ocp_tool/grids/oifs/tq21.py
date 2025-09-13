@@ -1,6 +1,5 @@
 from .utils import namedtuple_from_dict
 
-
 TQ21 = namedtuple_from_dict(
     "TQ21",
     {

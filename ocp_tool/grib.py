@@ -10,7 +10,7 @@ def read(file, shortnames):
     Raises RuntimeError if the same name appears in more than one grib
     message.
     """
-    data = {name: None for name in shortnames}
+    data = dict.fromkeys(shortnames)
     with open(file, 'rb') as f:
         while True:
             gid = ecc.codes_grib_new_from_file(f)

@@ -1,0 +1,37 @@
+name: ocp-tool-snakemake
+channels:
+  - conda-forge
+  - eumetsat
+  - bioconda
+dependencies:
+  # Core scientific computing
+  - python>=3.8
+  - numpy
+  - scipy
+  - matplotlib
+  - pandas
+  - netcdf4
+  - xarray
+  
+  # Climate/geo libraries  
+  - basemap
+  - cartopy
+  - python-eccodes
+  - pyproj
+  - pyresample
+  
+  # Workflow and development
+  - snakemake>=7.0
+  - jupyterlab
+  - notebook
+  - tqdm
+  - pyyaml
+  - git
+  
+  # Container tools
+  - conda-pack
+  
+  # From pip
+  - pip
+  - pip:
+    - git+https://github.com/FESOM/pyfesom2.git

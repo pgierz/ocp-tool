@@ -1,0 +1,175 @@
+"""
+Snakemake workflow for OCP-tool climate modeling pipeline
+
+This workflow processes OpenIFS coupling preparation tasks including:
+1. Land-sea mask modification
+2. OASIS3-MCT input file generation  
+3. Runoff mapper modifications
+"""
+
+import os
+from pathlib import Path
+
+# Configuration
+configfile: "config/config.yaml"
+
+# Define input and output directories
+INPUT_DIR = Path("input")
+OUTPUT_DIR = Path("output")
+NOTEBOOKS_DIR = Path("notebooks")
+
+# Rules
+rule all:
+    input:
+        expand("output/openifs_input_modified/ICMGG{exp_name}INIT_{grid_name}",
+               exp_name=config["exp_name_oifs"],
+               grid_name=config["grid_name_oce"]),
+        expand("output/oasis_mct3_input/{filebase}.nc",
+               filebase=["grids", "areas", "masks"]),
+        expand("output/runoff_map_modified/srunoff_maps_{grid_name}.nc",
+               grid_name=config["grid_name_oce"]),
+        "output/plots/land_points_T{res_num}.png".format(res_num=config["res_num"])
+
+rule setup_environment:
+    """Set up conda environment from environment.yaml"""
+    output:
+        touch("workflow/logs/environment_setup.done")
+    conda:
+        "../environment.yaml"
+    shell:
+        "echo 'Environment setup complete'"
+
+rule prepare_gaussian_grids:
+    """Process Gaussian grid files for specified truncation"""
+    input:
+        full_grid=INPUT_DIR / "gaussian_grids_full",
+        reduced_grid=lambda wc: INPUT_DIR / f"gaussian_grids_{'octahedral_reduced' if config['truncation_type'] == 'cubic-octahedral' else 'linear_reduced'}"
+    output:
+        grid_info="workflow/temp/grid_info_T{res_num}.txt"
+    params:
+        res_num=config["res_num"],
+        truncation_type=config["truncation_type"]
+    log:
+        "workflow/logs/prepare_gaussian_grids_T{res_num}.log"
+    script:
+        "scripts/prepare_gaussian_grids.py"
+
+rule process_fesom_grid:
+    """Read and process FESOM ocean grid"""
+    input:
+        fesom_mesh=config["fesom_grid_file_path"]
+    output:
+        processed_grid="workflow/temp/fesom_grid_processed_{grid_name}.nc"
+    params:
+        grid_name=config["grid_name_oce"],
+        interp_res=config["interp_res"],
+        cavity=config["cavity"]
+    log:
+        "workflow/logs/process_fesom_grid_{grid_name}.log"
+    script:
+        "scripts/process_fesom_grid.py"
+
+rule modify_land_sea_mask:
+    """Modify OpenIFS land-sea mask based on ocean grid"""
+    input:
+        openifs_input=INPUT_DIR / "openifs_input_default" / "ICMGG{exp_name}INIT",
+        fesom_grid="workflow/temp/fesom_grid_processed_{grid_name}.nc",
+        grid_info="workflow/temp/grid_info_T{res_num}.txt"
+    output:
+        modified_openifs=OUTPUT_DIR / "openifs_input_modified" / "ICMGG{exp_name}INIT_{grid_name}"
+    params:
+        res_num=config["res_num"],
+        num_fields=config["num_fields"]
+    log:
+        "workflow/logs/modify_land_sea_mask_T{res_num}_{grid_name}.log"
+    script:
+        "scripts/modify_land_sea_mask.py"
+
+rule generate_oasis_files:
+    """Generate OASIS3-MCT input files (grids, areas, masks)"""
+    input:
+        grid_info="workflow/temp/grid_info_T{res_num}.txt",
+        modified_lsm=OUTPUT_DIR / "openifs_input_modified" / "ICMGG{exp_name}INIT_{grid_name}",
+        runoff_files=expand(INPUT_DIR / "runoff_map_default" / "runoff_{filebase}.nc",
+                           filebase=["grids", "areas", "masks"])
+    output:
+        expand(OUTPUT_DIR / "oasis_mct3_input" / "{filebase}.nc",
+               filebase=["grids", "areas", "masks"])
+    params:
+        res_num=config["res_num"],
+        grid_name=config["grid_name_oce"]
+    log:
+        "workflow/logs/generate_oasis_files_T{res_num}_{grid_name}.log"
+    script:
+        "scripts/generate_oasis_files.py"
+
+rule modify_runoff_maps:
+    """Modify runoff mapper files"""
+    input:
+        runoff_input=INPUT_DIR / "runoff_map_default" / "runoff_maps.nc"
+    output:
+        modified_runoff=OUTPUT_DIR / "runoff_map_modified" / "srunoff_maps_{grid_name}.nc"
+    params:
+        res_num=config["res_num"],
+        grid_name=config["grid_name_oce"],
+        manual_basin_removal=config.get("manual_basin_removal", [])
+    log:
+        "workflow/logs/modify_runoff_maps_{grid_name}.log"
+    script:
+        "scripts/modify_runoff_maps.py"
+
+rule generate_plots:
+    """Generate visualization plots"""
+    input:
+        modified_lsm=OUTPUT_DIR / "openifs_input_modified" / "ICMGG{exp_name}INIT_{grid_name}",
+        grid_info="workflow/temp/grid_info_T{res_num}.txt"
+    output:
+        plot=OUTPUT_DIR / "plots" / "land_points_T{res_num}.png"
+    params:
+        res_num=config["res_num"]
+    log:
+        "workflow/logs/generate_plots_T{res_num}.log"
+    script:
+        "scripts/generate_plots.py"
+
+rule process_paleo_data:
+    """Optional: Process paleoclimate data"""
+    input:
+        paleo_lsm=config.get("paleo_input_path", "") + "/" + config.get("paleo_lsm_filename", ""),
+        paleo_ice=config.get("paleo_input_path", "") + "/" + config.get("paleo_ice_filename", ""),
+        grid_info="workflow/temp/grid_info_T{res_num}.txt"
+    output:
+        paleo_remapped="workflow/temp/paleo_data_remapped_T{res_num}.nc"
+    params:
+        do_paleo=config.get("do_paleo", False),
+        paleo_vars=config.get("paleo_vars", {})
+    log:
+        "workflow/logs/process_paleo_data_T{res_num}.log"
+    script:
+        "scripts/process_paleo_data.py"
+    run:
+        if not params.do_paleo:
+            shell("touch {output.paleo_remapped}")
+
+rule run_notebook:
+    """Execute the main notebook for validation/testing"""
+    input:
+        notebook="ocp_tool.ipynb",
+        deps=rules.all.input
+    output:
+        executed_notebook="output/executed_notebooks/ocp_tool_executed.ipynb"
+    conda:
+        "../environment.yaml"
+    log:
+        "workflow/logs/run_notebook.log"
+    shell:
+        """
+        mkdir -p output/executed_notebooks
+        jupyter nbconvert --to notebook --execute {input.notebook} \
+            --output {output.executed_notebook} --allow-errors
+        """
+
+# Clean up temporary files
+rule clean:
+    shell:
+        "rm -rf workflow/temp/ workflow/logs/"

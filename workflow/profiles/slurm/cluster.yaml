@@ -1,0 +1,43 @@
+# SLURM cluster configuration for different rule types
+
+__default__:
+  partition: compute
+  time: "02:00:00"
+  mem: "4G"
+  cpus-per-task: 1
+  job-name: "ocp-tool_{rule}"
+  output: "workflow/logs/slurm/{rule}-%j.out"
+  error: "workflow/logs/slurm/{rule}-%j.err"
+
+# Resource-intensive rules
+process_fesom_grid:
+  partition: compute  
+  time: "04:00:00"
+  mem: "16G"
+  cpus-per-task: 4
+
+modify_land_sea_mask:
+  partition: compute
+  time: "06:00:00" 
+  mem: "32G"
+  cpus-per-task: 8
+
+generate_oasis_files:
+  partition: compute
+  time: "04:00:00"
+  mem: "16G"
+  cpus-per-task: 4
+
+# I/O intensive rules
+modify_runoff_maps:
+  partition: compute
+  time: "02:00:00"
+  mem: "8G"
+  cpus-per-task: 2
+
+# Notebook execution
+run_notebook:
+  partition: compute
+  time: "08:00:00"
+  mem: "32G" 
+  cpus-per-task: 4

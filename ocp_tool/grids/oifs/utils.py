@@ -21,23 +21,23 @@ def parse_griddes(griddes_string):
     # This is what `cdo -s griddes` supposedly returns from ICMGG???INIT files.
     # The callable on the right hand sides are used to cast the values to their
     # correct types.
-    griddes_types = dict(
-        gridtype=str,
-        gridsize=int,
-        xsize=int,
-        ysize=int,
-        numlpe=int,
-        xname=str,
-        xlongname=lambda s: str(s[1:-1]),  # strip quotes
-        xunits=lambda s: str(s[1:-1]),
-        yname=str,
-        ylongname=lambda s: str(s[1:-1]),
-        yunits=lambda s: str(s[1:-1]),
-        xvals=lambda s: [*map(float, s.split())],  # list of floats
-        yvals=lambda s: [*map(float, s.split())],
-        reducedpoints=lambda s: [*map(int, s.split())],  # list of ints
-        rowlon=lambda s: [*map(int, s.split())],  # list of ints
-    )
+    griddes_types = {
+        "gridtype": str,
+        "gridsize": int,
+        "xsize": int,
+        "ysize": int,
+        "numlpe": int,
+        "xname": str,
+        "xlongname": lambda s: str(s[1:-1]),  # strip quotes
+        "xunits": lambda s: str(s[1:-1]),
+        "yname": str,
+        "ylongname": lambda s: str(s[1:-1]),
+        "yunits": lambda s: str(s[1:-1]),
+        "xvals": lambda s: [*map(float, s.split())],  # list of floats
+        "yvals": lambda s: [*map(float, s.split())],
+        "reducedpoints": lambda s: [*map(int, s.split())],  # list of ints
+        "rowlon": lambda s: [*map(int, s.split())],  # list of ints
+    }
 
     cfg = configparser.ConfigParser()
     cfg.read_string(
@@ -45,13 +45,13 @@ def parse_griddes(griddes_string):
             r"#\s*\n#\s+(.*)\n#\s*\n",  # Matches the cdo griddes headers
             r"[\1]\n",  # and replaces by configparser headers
             griddes_string,
-            re.MULTILINE,
+            flags=re.MULTILINE,
         )
     )
 
-    griddes = dict()
+    griddes = {}
     for sec in cfg.sections():
-        griddes[sec] = dict()
+        griddes[sec] = {}
         for key, val in cfg[sec].items():
             try:
                 griddes[sec][key] = griddes_types[key](val)

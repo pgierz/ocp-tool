@@ -106,7 +106,7 @@ else:
                     "Invalid OIFS grid type: "
                     f'{self.getarg("oifs_grid_type", context)}'
                 )
-                raise ScriptEngineTaskRunError
+                raise ScriptEngineTaskRunError from None
             self.log_debug("Write OIFS grids to grids.nc")
             ocp_tool.oasis.write_grid(
                 name=oifs_oasis_grid_name(oifs_grid_type, "L"),
@@ -138,7 +138,7 @@ else:
                 oifs_masks = ocp_tool.grib.read(oifs_mask_file, ("lsm", "cl"))
             except (FileNotFoundError, PermissionError):
                 self.log_error(f'Could not open OIFS mask file "{oifs_mask_file}"')
-                raise ScriptEngineTaskRunError
+                raise ScriptEngineTaskRunError from None
             oifs_lsm = np.where(
                 np.logical_or(oifs_masks["lsm"] > 0.5, oifs_masks["cl"] > 0.5), 0, 1
             )
@@ -162,7 +162,7 @@ else:
                     )
                 except (FileNotFoundError, PermissionError):
                     self.log_error(f'Could not open NEMO grid file "{nemo_grid_file}"')
-                    raise ScriptEngineTaskRunError
+                    raise ScriptEngineTaskRunError from None
                 self.log_debug("Write NEMO grids, areas, masks")
                 self.log_debug(
                     "NEMO t-grid area: "
@@ -209,7 +209,7 @@ else:
             self.log_debug("Write RNFM mask to masks.nc")
             if self.getarg("rnfm_mask_file", context, default=None):
                 self.log_error("Reading the RNFM mask from file is not implemented yet")
-                raise ScriptEngineTaskRunError
+                raise ScriptEngineTaskRunError from None
             else:
                 ocp_tool.oasis.write_mask(
                     name=oasis_grid_names["rnfm-atm"],
@@ -235,7 +235,7 @@ else:
                 self.log_error(
                     "Reading the AMIP-FR mask from file is not implemented yet"
                 )
-                raise ScriptEngineTaskRunError
+                raise ScriptEngineTaskRunError from None
             else:
                 ocp_tool.oasis.write_mask(
                     name=oasis_grid_names["amipfr"],
