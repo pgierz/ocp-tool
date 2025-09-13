@@ -45,7 +45,7 @@ def parse_griddes(griddes_string):
             r"#\s*\n#\s+(.*)\n#\s*\n",  # Matches the cdo griddes headers
             r"[\1]\n",  # and replaces by configparser headers
             griddes_string,
-            re.MULTILINE,
+            flags=re.MULTILINE,
         )
     )
 

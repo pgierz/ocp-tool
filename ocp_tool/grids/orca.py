@@ -49,7 +49,7 @@ class ORCA:
                     )
                 ]
             except KeyError:
-                raise RuntimeError("Unknown dimensions in NEMO domain config")
+                raise RuntimeError("Unknown dimensions in NEMO domain config") from None
         if self.masks is None:
             with Dataset(domain_cfg) as nc:
                 if 'top_level' not in nc.variables:

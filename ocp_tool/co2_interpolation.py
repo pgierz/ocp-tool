@@ -810,7 +810,7 @@ def interpolate_co2_to_icmgg(co2_grib_file, icmgg_iniua_file, output_file=None, 
                     eccodes.codes_release(template_gid)
 
                 # Release all template handles
-                for level, gid in template_gids.items():
+                for level, gid in template_gids.items():  # noqa: B007
                     eccodes.codes_release(gid)
 
                 # Release all original message handles

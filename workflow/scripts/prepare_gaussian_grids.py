@@ -15,7 +15,7 @@ import yaml
 
 # Get snakemake object if running through Snakemake
 try:
-    snakemake  # noqa: F821
+    snakemake  # noqa: F821, B018
 except NameError:
     # If not running through Snakemake, create a mock object for testing
     class MockSnakemake:

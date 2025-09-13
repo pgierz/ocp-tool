@@ -67,17 +67,17 @@ def read_grid_file(res_num, input_path_reduced_grid, input_path_full_grid, trunc
     if truncation_type == 'linear':
         # linear truncation (T = NN * 2 - 1)
         NN = res_num/2 + 0.5
-        grid_txt = '%s/n%d_reduced.txt' % (input_path_reduced_grid, NN)
+        grid_txt = f'{input_path_reduced_grid}/n{NN:.0f}_reduced.txt'
 
     elif truncation_type == 'cubic-octahedral':
         # cubic octahedral truncation (T = NN - 1)
         NN = res_num + 1
-        grid_txt = '%s/o%d_reduced.txt' % (input_path_reduced_grid, NN)
+        grid_txt = f'{input_path_reduced_grid}/o{NN:.0f}_reduced.txt'
 
     #print(' Read grid from file: %s ' % (grid_txt,) )
 
     print(longline)
-    print(' Reading OpenIFS gridfile for T%d ' % (res_num))
+    print(f' Reading OpenIFS gridfile for T{res_num} ')
     print(longline)
 
     if os.path.isfile(grid_txt):
@@ -131,7 +131,7 @@ def read_grid_from_icmgg(icmfile, NN, truncation_type):
       else:
          tmp_lat = [float(lat) for lat in line.split()]
       # append data to latitudes list
-      for lat in tmp_lat: latitudes.append(lat)
+      latitudes.extend(tmp_lat)
 
    for i in range(rline,len(lines)):
       line = lines[i]
@@ -143,7 +143,7 @@ def read_grid_from_icmgg(icmfile, NN, truncation_type):
       else:
          tmp_nlon = [int(nlon) for nlon in line.split()]
       # append data to nlongitudes list
-      for nlon in tmp_nlon: nlongitudes.append(nlon)
+      nlongitudes.extend(tmp_nlon)
 
    f.close()
 
@@ -165,11 +165,11 @@ def read_grid_from_icmgg(icmfile, NN, truncation_type):
          lats.append(lat)
 
    if truncation_type == 'cubic-octahedral':
-      ngrid = 'o%d' % (NN,)
+      ngrid = f'o{NN:.0f}'
       rfile = f'input/gaussian_grids_octahedral_reduced/{ngrid}_reduced.txt'
 
    elif truncation_type == 'linear':
-      ngrid = 'n%d' % (NN,)
+      ngrid = f'n{NN:.0f}'
       rfile = f'input/gaussian_grids_linear_reduced/{ngrid}_reduced.txt'
 
    # Write to text file that CDO can use for interpolations
@@ -179,7 +179,7 @@ def read_grid_from_icmgg(icmfile, NN, truncation_type):
    f.write(' ------- ------- ------- ---------- \n' )
 
    for ilat in range(0,len(nlongitudes)):
-      f.write('%d %d %d %f \n' % (ilat+1, nlongitudes[ilat], len(nlongitudes)*2, latitudes[ilat]))
+      f.write(f'{ilat+1} {nlongitudes[ilat]} {len(nlongitudes)*2} {latitudes[ilat]} \n')
    f.close()
 
    return rfile
@@ -238,7 +238,7 @@ def calculate_corner_latlon(lats_list, lons_list, numlons_list, dlon_list,
     nx = center_lons.shape[1]
     ny = 1
 
-    print(' Size of grid: nx = %d, ny = %d' % (nx, ny))
+    print(f' Size of grid: nx = {nx}, ny = {ny}')
 
     # Now we calculate longitudes/latitudes of corner points for each grid cell
     crn_lons = np.zeros((4, ny, nx))
@@ -478,7 +478,7 @@ def plotting_lsm(res_num, lsm_binary_l, lsm_binary_a, center_lats, center_lons,v
     ax3.scatter(xptsl, yptsl, s=100/res_num, color='red', marker='.', label='New dry points')
     ax3.scatter(xptsa, yptsa, s=200/res_num, marker='.', label='Wet points')
     ax3.legend(loc="lower right")
-    figname = 'output/plots/land_points_T%d.png' % (res_num,)
+    figname = f'output/plots/land_points_T{res_num}.png'
     fig3.savefig(figname, format='png',dpi=600)
 
 
@@ -729,7 +729,7 @@ def modify_runoff_map(res_num, input_path_runoff, output_path_runoff,
 
     # Fix for Glacial calving maps
     # Antarctica
-    for lo, lon in enumerate(lons):
+    for lo, lon in enumerate(lons):  # noqa: B007
         #removing old arrival points
         for la, lat in enumerate(lats):
             if lat < -55:
